@@ -2,6 +2,10 @@ use bevy::prelude::*;
 
 #[derive(Reflect, Component, Default)]
 #[reflect(Component)]
+pub struct Name(pub String);
+
+#[derive(Reflect, Component, Default)]
+#[reflect(Component)]
 pub struct Health {
     pub max: i32,
     pub current: i32,
@@ -19,3 +23,7 @@ pub struct Speed(pub f32);
 #[derive(Reflect, Component, Default)]
 #[reflect(Component)]
 pub struct Lifetime(pub Timer);
+
+#[derive(Reflect, Component, Default)]
+#[reflect(Component)]
+pub struct AttackRange(pub i32);

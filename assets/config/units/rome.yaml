@@ -1,0 +1,7 @@
+legionary:
+    health: 100
+    speed: 1.0
+
+archer:
+    health: 100
+    speed: 1.0

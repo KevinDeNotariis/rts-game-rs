@@ -2,7 +2,9 @@ use bevy::prelude::*;
 
 use crate::components::{location::SpawnLocation, units::Lifetime};
 use crate::game_state::GameState;
-use crate::units::base::{UnitFactoryResource, UnitType};
+use crate::units::rome::animations::RomeUnitsAnimationAssets;
+use crate::units::rome::config::RomeUnitType;
+use crate::units::rome::factory::RomeUnitsFactoryResource;
 
 pub struct SpawnPointPlugin;
 
@@ -21,7 +23,7 @@ fn setup(mut commands: Commands) {
     // Spawn SpawnLocation for Fast Units
     commands.spawn(SpawnLocation {
         spawn_timer: Timer::from_seconds(3., TimerMode::Repeating),
-        unit_type: UnitType::FastUnit,
+        unit_type: RomeUnitType::Archer,
         position: Vec3 {
             x: 0.0,
             y: 0.0,
@@ -32,7 +34,7 @@ fn setup(mut commands: Commands) {
     // Spawn SpawnLocation for Tank Units
     commands.spawn(SpawnLocation {
         spawn_timer: Timer::from_seconds(3., TimerMode::Repeating),
-        unit_type: UnitType::TankUnit,
+        unit_type: RomeUnitType::Legionary,
         position: Vec3 {
             x: 2.0,
             y: 0.0,
@@ -48,10 +50,10 @@ struct Spawned {
 
 fn spawn(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut spawn_location_query: Query<&mut SpawnLocation>,
-    unit_factory: ResMut<UnitFactoryResource>,
+    unit_factory: ResMut<RomeUnitsFactoryResource>,
+    rome_animations: Res<RomeUnitsAnimationAssets>,
+    mut graphs: ResMut<Assets<AnimationGraph>>,
     time: Res<Time>,
 ) {
     for mut spawn_location in &mut spawn_location_query {
@@ -60,10 +62,10 @@ fn spawn(
         if spawn_location.spawn_timer.just_finished() {
             let spawned = unit_factory.factory.spawn(
                 &mut commands,
-                &mut meshes,
-                &mut materials,
                 &spawn_location.unit_type,
                 &spawn_location.position,
+                &rome_animations,
+                &mut graphs,
             );
 
             commands.insert_resource(Spawned {
@@ -82,7 +84,7 @@ fn despawn(
         lifetime.0.tick(time.delta());
 
         if lifetime.0.just_finished() {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
     }
 }
