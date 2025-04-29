@@ -1,8 +1,7 @@
 use bevy::{
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    diagnostic::LogDiagnosticsPlugin,
     prelude::*,
 };
-use bevy_asset_loader::loading_state::{LoadingState, LoadingStateAppExt};
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 pub mod camera;

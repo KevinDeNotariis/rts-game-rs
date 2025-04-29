@@ -1,5 +1,5 @@
-use animations::{RomeUnitAnimationPlay, RomeUnitsAnimationAssets};
-use bevy::{ecs::observer::TriggerTargets, prelude::*, scene::SceneInstanceReady};
+use animations::RomeUnitsAnimationAssets;
+use bevy::prelude::*;
 use config::RomeUnitType;
 use factory::RomeUnitsFactoryResource;
 
