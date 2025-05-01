@@ -2,13 +2,13 @@ use bevy::prelude::*;
 
 use crate::components::{
     abilities::AbilityTripleDamage,
-    units::{AttackRange, Health, Name, Speed},
+    units::{AttackRange, Health, Speed},
 };
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[require(
-    Name("Archer".into()),
+    Name::new("Archer"),
     Transform,
     Health{max: 50, current: 50},
     Speed(1.0),

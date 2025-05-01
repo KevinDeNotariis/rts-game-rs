@@ -1,17 +1,19 @@
-use bevy::{
-    diagnostic::LogDiagnosticsPlugin,
-    prelude::*,
-};
+use bevy::{diagnostic::LogDiagnosticsPlugin, prelude::*};
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 pub mod camera;
+use bevy_rapier3d::{
+    plugin::{NoUserData, RapierPhysicsPlugin},
+    prelude::{Collider, RapierPickingPlugin, RapierPickingSettings},
+    render::{ColliderDebugColor, RapierDebugRenderPlugin},
+};
 use camera::*;
 
 use tower_defense_rs::{
+    factions::FactionsPlugin,
     game_state::{GameState, GameStatePlugin},
-    spawns::SpawnPointPlugin,
     start_menu::StartMenuPlugin,
-    units::UnitsPlugin,
+    terrain::Terrain,
 };
 
 fn setup(
@@ -21,9 +23,13 @@ fn setup(
 ) {
     // Spawn Terrain
     commands.spawn((
+        Name::new("Terrain"),
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(5.0)))),
         MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
-        Transform::from_xyz(0.0, 0.0, 0.0),
+        Transform::from_xyz(0.0, -1.0, 0.0),
+        Collider::cuboid(5.0, 0.01, 5.0),
+        ColliderDebugColor(Color::srgb(1.0, 0.0, 0.0).into()),
+        Terrain,
     ));
 
     // Spawn Light
@@ -47,21 +53,25 @@ fn main() {
             }),
             LogDiagnosticsPlugin::default(),
             // FrameTimeDiagnosticsPlugin::default(),
+            EguiPlugin {
+                enable_multipass_for_primary_context: true,
+            },
+            WorldInspectorPlugin::new(),
+            // MeshPickingPlugin,
+            RapierPhysicsPlugin::<NoUserData>::default(),
+            RapierDebugRenderPlugin::default(),
+            RapierPickingPlugin,
         ))
-        .add_plugins(EguiPlugin {
-            enable_multipass_for_primary_context: true,
+        .insert_resource(RapierPickingSettings {
+            require_markers: true,
+            ..default()
         })
-        .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(GameStatePlugin)
         .init_state::<GameState>()
         .add_systems(Startup, load_assets)
-        // .add_loading_state(
-        //     LoadingState::new(GameState::Loading).continue_to_state(GameState::StartMenu),
-        // )
         .add_plugins(CameraPlugin)
         .add_plugins(StartMenuPlugin)
-        .add_plugins(SpawnPointPlugin)
-        .add_plugins(UnitsPlugin)
+        .add_plugins(FactionsPlugin)
         .add_systems(
             OnEnter(GameState::Playing),
             setup.run_if(in_state(GameState::Playing)),

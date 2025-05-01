@@ -2,13 +2,13 @@ use bevy::prelude::*;
 
 use crate::components::{
     abilities::AbilityImmunity,
-    units::{Health, Name, Speed},
+    units::{Health, Speed},
 };
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 #[require(
-    Name("Legionary".into()),
+    Name::new("Legionary"),
     Health{max: 100, current: 100},
     Speed(0.5),
     AbilityImmunity
