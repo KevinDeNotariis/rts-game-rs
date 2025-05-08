@@ -1,4 +1,4 @@
-use bevy::{dev_tools::states::log_transitions, log::tracing::Instrument, prelude::*};
+use bevy::{dev_tools::states::log_transitions, prelude::*};
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Default, States)]
 pub enum GameState {
@@ -17,7 +17,7 @@ impl Plugin for GameStatePlugin {
 }
 
 fn exit_game(key: Res<ButtonInput<KeyCode>>, mut app_exit_event: EventWriter<AppExit>) {
-    if key.pressed(KeyCode::Escape) {
+    if key.pressed(KeyCode::SuperLeft) && key.pressed(KeyCode::Escape) {
         app_exit_event.write(AppExit::Success);
     }
 }

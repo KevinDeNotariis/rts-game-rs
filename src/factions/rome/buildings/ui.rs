@@ -1,25 +1,39 @@
-use bevy::{input::mouse, prelude::*};
+use bevy::prelude::*;
 use bevy_rapier3d::{
-    pipeline::QueryFilter,
-    plugin::ReadRapierContext,
     prelude::{Collider, RapierPickable},
     render::ColliderDebugColor,
 };
 
-use crate::{game_state::GameState, terrain::Terrain};
+use crate::{game_state::GameState, terrain::TerrainResource};
+
+use super::{
+    assets::RomeBuildingsAssets,
+    factory::{RomeBuildingType, RomeBuildingsFactoryResource},
+};
 
 pub struct RomeBuildingsUIPlugin;
 
 impl Plugin for RomeBuildingsUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Playing), setup)
-            .add_systems(Update, spawn_building.run_if(in_state(GameState::Playing)));
+        app.init_state::<UserActionState>()
+            .add_systems(OnEnter(GameState::Playing), setup)
+            .add_systems(
+                Update,
+                (
+                    place_or_cancel_building.run_if(in_state(UserActionState::PlacingBuilding)),
+                    move_building_getting_placed.run_if(in_state(GameState::Playing)),
+                ),
+            );
     }
 }
 
-#[derive(Resource)]
-struct RomeBuildingsUIData {
-    spawner_entity: Entity,
+#[derive(States, Default, Debug, Hash, Eq, PartialEq, Clone)]
+pub enum UserActionState {
+    #[default]
+    None,
+    PlacingBuilding,
+    BuildingSelected,
+    UnitsSelected,
 }
 
 const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
@@ -29,7 +43,7 @@ const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
 pub struct RomeBuildingsUIFrame;
 
 fn setup(mut commands: Commands) {
-    let entity = commands
+    commands
         .spawn((
             Name::new("RomeBuildingUI"),
             Node {
@@ -52,7 +66,7 @@ fn setup(mut commands: Commands) {
                 },
                 BackgroundColor(NORMAL_BUTTON),
                 children![
-                    Text::new("Rome Spawn Building"),
+                    Text::new("Spawn Building"),
                     TextFont {
                         font_size: 33.0,
                         ..default()
@@ -61,106 +75,135 @@ fn setup(mut commands: Commands) {
                 ]
             )],
         ))
-        .id();
-
-    commands.insert_resource(RomeBuildingsUIData {
-        spawner_entity: entity,
-    });
+        .observe(spawn_holo);
 }
 
-fn spawn_building(
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct BuildingGettingPlaced;
+
+#[derive(Component, Reflect, Default)]
+#[reflect(Component)]
+pub struct BuildingSelected;
+
+fn spawn_holo(
+    _click: Trigger<Pointer<Click>>,
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    buildings_factory_res: Res<RomeBuildingsFactoryResource>,
+    terrain_resource: Res<TerrainResource>,
     interaction_query: Query<&Interaction, (Changed<Interaction>, With<RomeBuildingsUIFrame>)>,
-) {
+    mut next_user_action_state: ResMut<NextState<UserActionState>>,
+    current_user_action_state: Res<State<UserActionState>>,
+) -> Result {
+    if current_user_action_state.get() == &UserActionState::PlacingBuilding {
+        return Ok(());
+    }
+
+    let hit = terrain_resource.cursor_projection;
+
     for interaction in &interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                commands
-                    .spawn((
-                        Name::new("RomeUnitsSpawn"),
-                        Transform::from_xyz(0., 0., 0.),
-                        Mesh3d(meshes.add(Cuboid::from_length(2.))),
-                        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.7, 0.3))),
-                        Collider::cuboid(1., 1., 1.),
-                        ColliderDebugColor(Color::srgb(0., 0., 1.).into()),
-                        RapierPickable,
-                    ))
-                    .observe(clicked_building)
-                    .observe(on_drag_move);
+                let factory = buildings_factory_res.factory;
+                factory.spawn_holo(
+                    &mut commands,
+                    RomeBuildingType::Cottage,
+                    Vec3::new(hit.x, 0.0, hit.y),
+                );
+                next_user_action_state.set(UserActionState::PlacingBuilding);
             }
             Interaction::Hovered => (),
             Interaction::None => (),
         }
     }
+
+    Ok(())
 }
 
-fn clicked_building(_click: Trigger<Pointer<Click>>) {
-    println!("clicked");
-}
-
-// fn on_drag(
-//     drag: Trigger<Pointer<Drag>>,
-//     // mut ray_cast: MeshRayCast,
-//     mut transform_q: Query<&mut Transform>,
-//     // terrain_q: Query<&Transform, With<Terrain>>,
-// ) {
-//     // let terrain = terrain_q.single();
-
-//     if let Ok(mut transform) = transform_q.get_mut(drag.target()) {
-//         // let ray = Ray3d::new()
-//         transform.rotate_y(drag.delta.x * 0.02);
-//         transform.rotate_x(drag.delta.y * 0.02);
-//     }
-// }
-
-fn on_drag_move(
-    drag: Trigger<Pointer<Drag>>,
-    mut transform_q: Query<&mut Transform>,
-    camera_q: Query<(&Camera, &GlobalTransform)>,
-    terrain_q: Query<Entity, With<Terrain>>,
-    window: Query<&Window>,
-    rapier_context: ReadRapierContext,
+fn highlight_building(
+    _click: Trigger<Pointer<Click>>,
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    user_action_state: Res<State<UserActionState>>,
+    mut next_user_action_state: ResMut<NextState<UserActionState>>,
+    building_selected: Query<Entity, With<BuildingSelected>>,
+    entities: Query<Entity>,
 ) -> Result {
-    let mut transform = transform_q.get_mut(drag.target())?;
+    if user_action_state.get() == &UserActionState::PlacingBuilding {
+        return Ok(());
+    }
+    if user_action_state.get() == &UserActionState::BuildingSelected {
+        let previous_selected = entities.get(building_selected.single()?)?;
+        commands
+            .entity(previous_selected)
+            .remove::<BuildingSelected>()
+            .remove::<MeshMaterial3d<StandardMaterial>>();
+    }
 
-    // Get camera info
-    let (camera, camera_transform) = camera_q.single()?;
+    println!("Clicked Building!");
+    let entity = entities.get(_click.target())?;
 
-    // Get terrain info
-    let terrain = terrain_q.single()?;
+    let highlight_material = materials.add(StandardMaterial {
+        base_color: Color::srgb(1.0, 1.0, 0.5), // Highlight color
+        emissive: LinearRgba::new(0.5, 0.5, 0.2, 0.3), // Add glow effect
+        ..Default::default()
+    });
+    commands
+        .entity(entity)
+        .insert((MeshMaterial3d(highlight_material), BuildingSelected));
 
-    // Mouse position
-    let mouse_position = window.single()?.cursor_position().unwrap(); // TODO: Dangerous
+    next_user_action_state.set(UserActionState::BuildingSelected);
 
-    // Convert screen position to ray
-    let ray = camera.viewport_to_world(camera_transform, mouse_position)?; // Cast ray to find intersection with terrain
-    let (_, intersection) = rapier_context
-        .single()
-        .unwrap()
-        .cast_ray(
-            ray.origin,
-            ray.direction.into(),
-            f32::MAX,
-            true,
-            QueryFilter::default().predicate(&|entity| entity == terrain),
+    Ok(())
+}
+
+fn move_building_getting_placed(
+    mut building_q: Query<&mut Transform, With<BuildingGettingPlaced>>,
+    terrain_resource: Res<TerrainResource>,
+) -> Result {
+    if let Ok(mut building) = building_q.single_mut() {
+        let hit = terrain_resource.cursor_projection;
+
+        let current_height = building.translation.y;
+        building.translation = Vec3::new(
+            hit.x,
+            current_height, // or hit_position.y + offset
+            hit.y,
         )
-        .unwrap(); //TODO: Dangerous
+    }
 
-    // Calculate the world position of the intersection
-    let hit_position = ray.origin + ray.direction * intersection;
-    println!("{:#?}", hit_position);
+    Ok(())
+}
 
-    // Update cube position to follow cursor on terrain
-    // You might want to keep the original y-height of the object
-    // or offset it slightly above the terrain
-    let current_height = transform.translation.y;
-    transform.translation = Vec3::new(
-        hit_position.x,
-        current_height, // or hit_position.y + offset
-        hit_position.z,
-    );
+fn place_or_cancel_building(
+    mut commands: Commands,
+    mouse_button_input: Res<ButtonInput<MouseButton>>,
+    key: Res<ButtonInput<KeyCode>>,
+    building: Query<Entity, With<BuildingGettingPlaced>>,
+    mut next_user_action_state: ResMut<NextState<UserActionState>>,
+    terrain_resource: Res<TerrainResource>,
+    buildings_factory_res: Res<RomeBuildingsFactoryResource>,
+    rome_building_asset: Res<RomeBuildingsAssets>,
+) -> Result {
+    if mouse_button_input.just_pressed(MouseButton::Left) {
+        let hit = terrain_resource.cursor_projection;
+
+        println!("Placed!");
+        let factory = buildings_factory_res.factory;
+        factory
+            .spawn(
+                &mut commands,
+                &rome_building_asset,
+                RomeBuildingType::Cottage,
+                Vec3::new(hit.x, 0.0, hit.y),
+            )
+            .observe(highlight_building);
+    }
+    if mouse_button_input.just_pressed(MouseButton::Right) || key.just_pressed(KeyCode::Escape) {
+        println!("Canceled!");
+        commands.entity(building.single()?).despawn();
+        next_user_action_state.set(UserActionState::None);
+    }
 
     Ok(())
 }

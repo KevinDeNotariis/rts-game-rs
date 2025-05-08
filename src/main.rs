@@ -4,8 +4,8 @@ use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 pub mod camera;
 use bevy_rapier3d::{
     plugin::{NoUserData, RapierPhysicsPlugin},
-    prelude::{Collider, RapierPickingPlugin, RapierPickingSettings},
-    render::{ColliderDebugColor, RapierDebugRenderPlugin},
+    prelude::{RapierPickingPlugin, RapierPickingSettings},
+    render::RapierDebugRenderPlugin,
 };
 use camera::*;
 
@@ -13,25 +13,10 @@ use tower_defense_rs::{
     factions::FactionsPlugin,
     game_state::{GameState, GameStatePlugin},
     start_menu::StartMenuPlugin,
-    terrain::Terrain,
+    terrain::TerrainPlugin,
 };
 
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // Spawn Terrain
-    commands.spawn((
-        Name::new("Terrain"),
-        Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(5.0)))),
-        MeshMaterial3d(materials.add(Color::srgb(0.3, 0.5, 0.3))),
-        Transform::from_xyz(0.0, -1.0, 0.0),
-        Collider::cuboid(5.0, 0.01, 5.0),
-        ColliderDebugColor(Color::srgb(1.0, 0.0, 0.0).into()),
-        Terrain,
-    ));
-
+fn setup(mut commands: Commands) {
     // Spawn Light
     commands.spawn((
         DirectionalLight::default(),
@@ -46,7 +31,6 @@ fn main() {
                 primary_window: Some(Window {
                     title: "My Game".into(),
                     fit_canvas_to_parent: true,
-                    resolution: (800.0, 500.0).into(),
                     ..default()
                 }),
                 ..default()
@@ -69,9 +53,7 @@ fn main() {
         .add_plugins(GameStatePlugin)
         .init_state::<GameState>()
         .add_systems(Startup, load_assets)
-        .add_plugins(CameraPlugin)
-        .add_plugins(StartMenuPlugin)
-        .add_plugins(FactionsPlugin)
+        .add_plugins((StartMenuPlugin, CameraPlugin, TerrainPlugin, FactionsPlugin))
         .add_systems(
             OnEnter(GameState::Playing),
             setup.run_if(in_state(GameState::Playing)),

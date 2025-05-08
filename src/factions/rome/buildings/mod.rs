@@ -1,12 +1,18 @@
 use bevy::prelude::*;
 
+pub mod assets;
+pub mod factory;
 pub mod ui;
 
 pub struct RomeBuildingsPlugin;
 
 impl Plugin for RomeBuildingsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(ui::RomeBuildingsUIPlugin);
+        app.add_plugins((
+            ui::RomeBuildingsUIPlugin,
+            factory::RomeBuildingsFactoryPlugin,
+            assets::RomeBuildingsAssetsPlugin,
+        ));
     }
 }
 

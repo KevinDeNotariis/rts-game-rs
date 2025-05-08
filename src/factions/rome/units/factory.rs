@@ -34,7 +34,7 @@ pub struct RomeUnitsFactoryResource {
 
 impl RomeUnitsFactory {
     pub fn spawn(
-        self,
+        &self,
         commands: &mut Commands,
         unit_type: &RomeUnitType,
         pos: &Vec3,

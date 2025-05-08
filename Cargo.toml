@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+spawnable-unit-derive = {path = "spawnable-unit-derive"}
 anyhow = "1.0.98"
 bevy = { version = "0.16.0", features = ["dynamic_linking", "bevy_dev_tools", "bevy_ui", "jpeg"] }
 bevy-inspector-egui = "0.31.0"
