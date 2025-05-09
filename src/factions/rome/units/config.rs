@@ -44,6 +44,6 @@ pub struct RomeUnitsConfig {
 #[reflect(Resource)]
 pub struct RomeUnitsConfigResource(Handle<RomeUnitsConfig>);
 
-pub fn setup(mut config: ResMut<RomeUnitsConfigResource>, asset_server: Res<AssetServer>) {
+fn setup(mut config: ResMut<RomeUnitsConfigResource>, asset_server: Res<AssetServer>) {
     config.0 = asset_server.load("config/units/rome.yaml");
 }

@@ -1,15 +1,10 @@
 use bevy::prelude::*;
-use bevy_rapier3d::{
-    prelude::{Collider, RapierPickable},
-    render::ColliderDebugColor,
-};
-
-use crate::{game_state::GameState, terrain::TerrainResource};
 
 use super::{
     assets::RomeBuildingsAssets,
     factory::{RomeBuildingType, RomeBuildingsFactoryResource},
 };
+use crate::{game_state::GameState, terrain::TerrainResource};
 
 pub struct RomeBuildingsUIPlugin;
 

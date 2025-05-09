@@ -11,9 +11,9 @@ impl Plugin for CameraPlugin {
             orthographic_viewport_height: 5.,
             // In orthographic projections, we specify camera scale relative to a default value of 1,
             // in which one unit in world space corresponds to one pixel.
-            orthographic_zoom_range: 0.5..1.0,
+            orthographic_zoom_range: 0.05..10.0,
             // This value was hand-tuned to ensure that zooming in and out feels smooth but not slow.
-            orthographic_zoom_speed: 0.1,
+            orthographic_zoom_speed: 0.001,
             // Perspective projections use field of view, expressed in radians. We would
             // normally not set it to more than π, which represents a 180° FOV.
             perspective_zoom_range: (PI / 5.)..(PI - 0.2),
@@ -70,7 +70,7 @@ fn movement_keyboard(
     let left = camera.left();
     let left_unit = Dir3::from_xyz(left.x, 0.0, left.z).unwrap();
 
-    let speed = 3.0;
+    let speed = 30.0;
 
     if key.pressed(KeyCode::ArrowDown) {
         camera.translation -= forward_unit * time.delta_secs() * speed;

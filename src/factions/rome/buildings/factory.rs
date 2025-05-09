@@ -1,8 +1,5 @@
 use bevy::prelude::*;
-use bevy_rapier3d::{
-    prelude::{Collider, RapierPickable},
-    render::ColliderDebugColor,
-};
+use bevy_rapier3d::{prelude::*, render::ColliderDebugColor};
 
 use super::{assets::RomeBuildingsAssets, ui::BuildingGettingPlaced};
 
@@ -14,7 +11,7 @@ impl Plugin for RomeBuildingsFactoryPlugin {
             .register_type::<RomeBuildingsFactoryResource>()
             .insert_resource(RomeBuildingsFactoryResource {
                 factory: RomeBuildingsFactory {
-                    config: RomeBuildingsConfig { size: 1.0 },
+                    config: RomeBuildingsConfig { size: 2.0 },
                 },
             });
     }
@@ -53,12 +50,8 @@ impl RomeBuildingsFactory {
                 },
                 RapierPickable,
                 Visibility::Visible,
-                Collider::cuboid(
-                    self.config.size / 2.,
-                    self.config.size / 2.,
-                    self.config.size / 2.,
-                ),
-                ColliderDebugColor(Color::srgb(0., 0., 1.).into()),
+                Collider::cuboid(1.0 / 4., 1.0 / 4., 1.0 / 4.),
+                ColliderDebugColor(Hsla::hsl(220.0, 1.0, 0.3)),
             ),
         }
     }
