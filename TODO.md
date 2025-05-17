@@ -1,5 +1,9 @@
 # TODO
 
+These todos are for prototyping. 
+
+They will be tickend when an example of the feature listed is implemented
+
 ## Camera
 
 - [x] Camera movements via arrow keys
@@ -7,6 +11,10 @@
 - [x] Camera Zoom In/Out
 - [ ] Camera Rotation
 - [ ] Camera optical Zoom out/in to increase/decrease field view
+
+## Terrain
+
+- [ ] Grid implementation and display in debug mode
 
 ## Units
 
@@ -32,6 +40,9 @@
 - [ ] Allow creation of custom heroes
 
 ## Buildings
+
+- [x] Button to spawn building
+- [x] Placing Building
 
 ### Units Spawn
 

@@ -2,6 +2,8 @@ use bevy::prelude::*;
 
 pub mod assets;
 pub mod factory;
+pub mod lifecycle;
+pub mod models;
 pub mod ui;
 
 pub struct RomeBuildingsPlugin;
@@ -12,6 +14,7 @@ impl Plugin for RomeBuildingsPlugin {
             ui::RomeBuildingsUIPlugin,
             factory::RomeBuildingsFactoryPlugin,
             assets::RomeBuildingsAssetsPlugin,
+            lifecycle::RomeBuildingsLifecyclePlugin,
         ));
     }
 }

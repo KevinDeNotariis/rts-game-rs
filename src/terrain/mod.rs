@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{input::common_conditions::input_pressed, prelude::*};
 use bevy_rapier3d::prelude::Collider;
 use serde::{Deserialize, Serialize};
 use systems::TerrainSystemsPlugins;
@@ -20,8 +20,18 @@ impl Plugin for TerrainPlugin {
         .init_asset_loader::<GenericYamlAssetLoader<TerrainConfig>>()
         .add_systems(OnEnter(GameState::Loading), asset_load)
         .add_systems(OnEnter(GameState::Playing), setup)
+        .add_systems(
+            Update,
+            print_position.run_if(input_pressed(MouseButton::Left)),
+        )
         .add_plugins(TerrainSystemsPlugins);
     }
+}
+
+fn print_position(terrain_resource: Res<TerrainResource>) {
+    let hit = terrain_resource.cursor_projection;
+
+    println!("clicked terrain: {:#?}", hit);
 }
 
 fn asset_load(mut config: ResMut<TerrainConfigResource>, asset_server: Res<AssetServer>) {

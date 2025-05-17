@@ -2,7 +2,7 @@ use bevy::{platform::collections::HashMap, prelude::*};
 
 use crate::game_state::GameState;
 
-use super::factory::RomeBuildingType;
+use super::models::RomeBuildingType;
 
 pub struct RomeBuildingsAssetsPlugin;
 

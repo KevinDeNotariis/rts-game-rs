@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 use bevy_rapier3d::{prelude::*, render::ColliderDebugColor};
 
-use super::{assets::RomeBuildingsAssets, ui::BuildingGettingPlaced};
+use crate::components::buildings::BuildingGettingPlaced;
+
+use super::{assets::RomeBuildingsAssets, models::RomeBuildingType};
 
 pub struct RomeBuildingsFactoryPlugin;
 
@@ -15,11 +17,6 @@ impl Plugin for RomeBuildingsFactoryPlugin {
                 },
             });
     }
-}
-
-#[derive(Reflect, Eq, PartialEq, Hash, Clone)]
-pub enum RomeBuildingType {
-    Cottage,
 }
 
 #[derive(Reflect, Clone, Copy)]

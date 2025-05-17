@@ -5,4 +5,5 @@ pub mod game_state;
 pub mod inputs;
 pub mod spawns;
 pub mod start_menu;
+pub mod states;
 pub mod terrain;
