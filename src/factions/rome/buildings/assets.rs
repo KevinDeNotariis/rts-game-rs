@@ -1,31 +1,29 @@
 use bevy::{platform::collections::HashMap, prelude::*};
+use bevy_asset_loader::{
+    asset_collection::AssetCollection,
+    loading_state::{
+        LoadingStateAppExt,
+        config::{ConfigureLoadingState, LoadingStateConfig},
+    },
+};
 
-use crate::game_state::GameState;
-
-use super::models::RomeBuildingType;
+use crate::{base::factions::RomeBuildingType, game_state::GameState};
 
 pub struct RomeBuildingsAssetsPlugin;
 
 impl Plugin for RomeBuildingsAssetsPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<RomeBuildingsAssets>()
-            .add_systems(Startup, setup.run_if(in_state(GameState::Loading)));
+            .configure_loading_state(
+                LoadingStateConfig::new(GameState::Loading)
+                    .load_collection::<RomeBuildingsAssets>(),
+            );
     }
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) -> Result {
-    let scene: Handle<Scene> =
-        asset_server.load(GltfAssetLabel::Scene(0).from_asset("buildings/Cottage.glb"));
-
-    commands.insert_resource(RomeBuildingsAssets {
-        model: HashMap::from_iter([(RomeBuildingType::Cottage, scene)]),
-    });
-
-    Ok(())
-}
-
-#[derive(Resource, Asset, Clone, Reflect)]
+#[derive(Resource, AssetCollection, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct RomeBuildingsAssets {
-    pub model: HashMap<RomeBuildingType, Handle<Scene>>,
+    #[asset(paths("buildings/Cottage.glb"), collection(typed, mapped))]
+    pub model: HashMap<RomeBuildingType, Handle<Gltf>>,
 }

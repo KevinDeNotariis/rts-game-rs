@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::components::{
+use crate::base::{
     abilities::AbilityImmunity,
     units::{Health, Speed},
 };

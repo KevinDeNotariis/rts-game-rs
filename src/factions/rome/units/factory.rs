@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::units::{IsMoving, Lifetime, Speed},
+    base::units::{IsMoving, Lifetime, Speed},
     game_state::GameState,
 };
 

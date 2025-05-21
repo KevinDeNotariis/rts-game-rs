@@ -1,11 +1,8 @@
 use bevy::prelude::*;
 
-use crate::{
-    components::buildings::{BuildingGettingPlaced, BuildingSelected},
-    factions::rome::buildings::models::RomeBuildingType,
-    states::UserActionState,
-    terrain::TerrainResource,
-};
+use crate::base::buildings::components::{BuildingGettingPlaced, BuildingSelected};
+use crate::base::factions::RomeBuildingType;
+use crate::{states::UserActionState, terrain::TerrainResource};
 
 use super::{assets::RomeBuildingsAssets, factory::RomeBuildingsFactoryResource};
 
@@ -29,6 +26,7 @@ fn place_or_cancel_building(
     terrain_resource: Res<TerrainResource>,
     buildings_factory_res: Res<RomeBuildingsFactoryResource>,
     rome_building_asset: Res<RomeBuildingsAssets>,
+    assets_gltf: Res<Assets<Gltf>>,
 ) -> Result {
     if mouse_button_input.just_pressed(MouseButton::Left) {
         let hit = terrain_resource.cursor_projection;
@@ -39,6 +37,7 @@ fn place_or_cancel_building(
             .spawn(
                 &mut commands,
                 &rome_building_asset,
+                assets_gltf,
                 RomeBuildingType::Cottage,
                 Vec3::new(hit.x, 0.0, hit.y),
             )

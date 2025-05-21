@@ -1,4 +1,5 @@
 use bevy::{diagnostic::LogDiagnosticsPlugin, prelude::*};
+use bevy_asset_loader::loading_state::{LoadingState, LoadingStateAppExt};
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 
 pub mod camera;
@@ -52,15 +53,14 @@ fn main() {
         })
         .add_plugins(GameStatePlugin)
         .init_state::<GameState>()
-        .add_systems(Startup, load_assets)
+        // Loading Assets
+        .add_loading_state(
+            LoadingState::new(GameState::Loading).continue_to_state(GameState::Playing),
+        )
         .add_plugins((StartMenuPlugin, CameraPlugin, TerrainPlugin, FactionsPlugin))
         .add_systems(
             OnEnter(GameState::Playing),
             setup.run_if(in_state(GameState::Playing)),
         )
         .run();
-}
-
-fn load_assets(mut next_state: ResMut<NextState<GameState>>) {
-    next_state.set(GameState::StartMenu);
 }

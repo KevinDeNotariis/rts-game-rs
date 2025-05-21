@@ -1,4 +1,4 @@
-use crate::components::{
+use crate::base::{
     abilities::AbilityTripleDamage,
     units::{AttackRange, Health, Speed},
 };

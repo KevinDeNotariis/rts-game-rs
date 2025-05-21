@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 
-use super::{factory::RomeBuildingsFactoryResource, models::RomeBuildingType};
+use super::factory::RomeBuildingsFactoryResource;
 use crate::{
-    components::buildings::BuildingGettingPlaced, game_state::GameState, states::UserActionState,
+    base::{buildings::components::BuildingGettingPlaced, factions::RomeBuildingType},
+    game_state::GameState,
+    states::UserActionState,
     terrain::TerrainResource,
 };
 

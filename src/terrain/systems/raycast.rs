@@ -18,7 +18,9 @@ pub fn raycast_cursor_to_terrain(
     let terrain = terrain_q.single()?;
 
     // Mouse position
-    let mouse_position = window.single()?.cursor_position().unwrap();
+    let Some(mouse_position) = window.single()?.cursor_position() else {
+        return Ok(());
+    };
 
     // Convert screen position to ray
     let ray = camera.viewport_to_world(camera_transform, mouse_position)?;

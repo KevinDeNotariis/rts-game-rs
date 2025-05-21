@@ -1,5 +1,5 @@
 pub mod asset_loaders;
-pub mod components;
+pub mod base;
 pub mod factions;
 pub mod game_state;
 pub mod inputs;

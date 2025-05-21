@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 use bevy_rapier3d::{prelude::*, render::ColliderDebugColor};
 
-use crate::components::buildings::BuildingGettingPlaced;
+use crate::base::{buildings::components::BuildingGettingPlaced, factions::RomeBuildingType};
 
-use super::{assets::RomeBuildingsAssets, models::RomeBuildingType};
+use super::assets::RomeBuildingsAssets;
 
 pub struct RomeBuildingsFactoryPlugin;
 
@@ -50,6 +50,8 @@ impl RomeBuildingsFactory {
                 Collider::cuboid(1.0 / 4., 1.0 / 4., 1.0 / 4.),
                 ColliderDebugColor(Hsla::hsl(220.0, 1.0, 0.3)),
             ),
+            RomeBuildingType::Barracks => todo!(),
+            RomeBuildingType::Armory => todo!(),
         }
     }
 
@@ -59,26 +61,25 @@ impl RomeBuildingsFactory {
         building_type: RomeBuildingType,
         pos: Vec3,
     ) -> EntityCommands<'a> {
-        match building_type {
-            RomeBuildingType::Cottage => {
-                commands.spawn((BuildingGettingPlaced, self.building(building_type, pos)))
-            }
-        }
+        commands.spawn((BuildingGettingPlaced, self.building(building_type, pos)))
     }
 
     pub fn spawn<'a>(
         &self,
         commands: &'a mut Commands,
         rome_building_assets: &RomeBuildingsAssets,
+        assets_gltf: Res<Assets<Gltf>>,
         building_type: RomeBuildingType,
         pos: Vec3,
     ) -> EntityCommands<'a> {
-        let model = rome_building_assets.model.get(&building_type).unwrap();
+        let model_gltf = rome_building_assets.model.get(&building_type).unwrap();
+        let Some(model) = assets_gltf.get(model_gltf) else {
+            panic!("Asset not loaded proprely");
+        };
 
-        match building_type {
-            RomeBuildingType::Cottage => {
-                commands.spawn((self.building(building_type, pos), SceneRoot(model.clone())))
-            }
-        }
+        commands.spawn((
+            self.building(building_type, pos),
+            SceneRoot(model.scenes[0].clone()),
+        ))
     }
 }
