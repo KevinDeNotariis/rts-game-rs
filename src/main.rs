@@ -1,12 +1,13 @@
 use anyhow::Error;
 use bevy::{diagnostic::LogDiagnosticsPlugin, prelude::*};
+use bevy_asset_loader::loading_state::{LoadingState, LoadingStateAppExt};
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 use bevy_rapier3d::{
     plugin::{NoUserData, RapierPhysicsPlugin},
     prelude::{RapierPickingPlugin, RapierPickingSettings},
     render::RapierDebugRenderPlugin,
 };
-use rts_game_rs::game_states::GameStatePlugin;
+use rts_game_rs::game_states::{GameState, GameStatePlugin};
 
 fn main() -> Result<(), Error> {
     App::new()
@@ -33,6 +34,9 @@ fn main() -> Result<(), Error> {
             ..default()
         })
         .add_plugins(GameStatePlugin)
+        .add_loading_state(
+            LoadingState::new(GameState::Loading).continue_to_state(GameState::StartMenu),
+        )
         .run();
 
     Ok(())
