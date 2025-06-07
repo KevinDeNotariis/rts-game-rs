@@ -1,0 +1,7 @@
+{
+    "MD007": { "indent": 4 },
+    "no-hard-tabs": false,
+    "MD013": { "line_length": 100 },
+    "MD036": false,
+    "MD024": { "siblings_only": true }
+}

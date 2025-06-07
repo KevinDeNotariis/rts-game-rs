@@ -1,0 +1,47 @@
+[package]
+name = "rts-game-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+bevy = { version = "0.16.1", features = ["dynamic_linking", "bevy_dev_tools", "bevy_ui", "jpeg"] }
+bevy-inspector-egui = "0.31.0"
+lazy_static = "1.5.0"
+once_cell = "1.21.3"
+serde = { version = "1.0.219", features = ["derive"] }
+bevy_asset_loader = "0.23.0"
+paste = "1.0.15"
+strum = "0.27.1"
+strum_macros = "0.27.1"
+serde_json = "1.0.140"
+serde_yml = "0.0.12"
+bevy_rapier3d = "0.30.0"
+
+
+# Enable a small amount of optimization in the dev profile
+[profile.dev]
+opt-level = 1
+
+# Enable a large amount of optimization in the dev profile for dependencies
+[profile.dev.package."*"]
+opt-level = 3
+
+# Enable more optimization in the release profile at the cost of compile time
+[profile.release]
+# Compile the entire crate as one unit.
+# Slows compile time, maginal improvements.
+codegen-units = 1
+# Do a second optimization pass over the entire program, including dependencies.
+# Slows compile times, marginal improvements.
+lto = "thin"
+
+# Optimize for size in the wasm-release profile to reduce load times and bandwidth usage on web.
+[profile.wasm-release]
+# Default to release profile values.
+inherits = "release"
+# Optimize with size in mind (also try "z", sometimes it is better).
+# Slightly slows compile time, great imrovements to file size and runtime performance.
+opt-level = "s"
+# Strop all debugging information from the binary to slightly reduce file size.
+strip = "debuginfo"
