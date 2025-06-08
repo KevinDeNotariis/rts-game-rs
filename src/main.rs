@@ -7,7 +7,11 @@ use bevy_rapier3d::{
     prelude::{RapierPickingPlugin, RapierPickingSettings},
     render::RapierDebugRenderPlugin,
 };
-use rts_game_rs::game_states::{GameState, GameStatePlugin};
+use rts_game_rs::{
+    camera::CameraPlugin,
+    game_states::{GameState, GameStatePlugin},
+    menus::start_menu::StartMenuPlugin,
+};
 
 fn main() -> Result<(), Error> {
     App::new()
@@ -37,6 +41,7 @@ fn main() -> Result<(), Error> {
         .add_loading_state(
             LoadingState::new(GameState::Loading).continue_to_state(GameState::StartMenu),
         )
+        .add_plugins((StartMenuPlugin, CameraPlugin))
         .run();
 
     Ok(())
