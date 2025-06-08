@@ -9,8 +9,11 @@ use bevy_rapier3d::{
 };
 use rts_game_rs::{
     camera::CameraPlugin,
+    config::ConfigPlugin,
     game_states::{GameState, GameStatePlugin},
-    menus::start_menu::StartMenuPlugin,
+    light::LightPlugin,
+    menus::MenusPlugin,
+    terrain::TerrainPlugin,
 };
 
 fn main() -> Result<(), Error> {
@@ -41,7 +44,13 @@ fn main() -> Result<(), Error> {
         .add_loading_state(
             LoadingState::new(GameState::Loading).continue_to_state(GameState::StartMenu),
         )
-        .add_plugins((StartMenuPlugin, CameraPlugin))
+        .add_plugins((
+            ConfigPlugin,
+            MenusPlugin,
+            CameraPlugin,
+            TerrainPlugin,
+            LightPlugin,
+        ))
         .run();
 
     Ok(())

@@ -10,6 +10,7 @@ impl Plugin for GameStatePlugin {
 }
 
 #[derive(States, Default, Debug, Hash, Eq, PartialEq, Clone, Copy)]
+#[states(scoped_entities)]
 pub enum GameState {
     #[default]
     Loading,

@@ -10,14 +10,8 @@ pub struct StartMenuPlugin;
 impl Plugin for StartMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::StartMenu), setup)
-            .add_systems(Update, apply_interaction_palette)
-            .add_systems(OnExit(GameState::StartMenu), teardown);
+            .add_systems(Update, apply_interaction_palette);
     }
-}
-
-#[derive(Resource)]
-struct MenuData {
-    menu_entity: Entity,
 }
 
 #[derive(Component, Reflect, Debug)]
@@ -45,29 +39,26 @@ fn apply_interaction_palette(
 }
 
 fn setup(mut commands: Commands) {
-    let menu_entity = commands
-        .spawn((
-            Node {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-            children![
-                get_state_transition_button("New Game", GameState::GameSelection),
-                get_state_transition_button("Load Game", GameState::LoadGame),
-                get_state_transition_button("Map Editor", GameState::MapEditor),
-                get_state_transition_button("Hero Editor", GameState::HeroEditor),
-                get_state_transition_button("Options", GameState::Options),
-                get_state_transition_button("Credits", GameState::Credits),
-                get_state_transition_button("Exit", GameState::ExitingGame),
-            ],
-        ))
-        .id();
-
-    commands.insert_resource(MenuData { menu_entity });
+    commands.spawn((
+        StateScoped(GameState::StartMenu),
+        Node {
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },
+        children![
+            get_state_transition_button("New Game", GameState::GameSelection),
+            get_state_transition_button("Load Game", GameState::LoadGame),
+            get_state_transition_button("Map Editor", GameState::MapEditor),
+            get_state_transition_button("Hero Editor", GameState::HeroEditor),
+            get_state_transition_button("Options", GameState::Options),
+            get_state_transition_button("Credits", GameState::Credits),
+            get_state_transition_button("Exit", GameState::ExitingGame),
+        ],
+    ));
 }
 
 fn get_state_transition_button(text: impl Into<String>, next_state: GameState) -> impl Bundle {
@@ -114,8 +105,4 @@ fn get_state_transition_button(text: impl Into<String>, next_state: GameState) -
                 );
         })),
     )
-}
-
-fn teardown(mut commands: Commands, menu_data: Res<MenuData>) {
-    commands.entity(menu_data.menu_entity).despawn();
 }

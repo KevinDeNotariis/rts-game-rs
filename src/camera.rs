@@ -1,45 +1,18 @@
-use std::{f32::consts::PI, ops::Range};
-
 use bevy::{input::mouse::AccumulatedMouseScroll, prelude::*, render::camera::ScalingMode};
 use bevy_rapier3d::prelude::RapierPickable;
+
+use crate::config::camera::CameraConfig;
 
 pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(CameraSettings {
-            orthographic_viewport_height: 5.,
-            // In orthographic projections, we specify camera scale relative to a default value of 1,
-            // in which one unit in world space corresponds to one pixel.
-            orthographic_zoom_range: 0.05..10.0,
-            // This value was hand-tuned to ensure that zooming in and out feels smooth but not slow.
-            orthographic_zoom_speed: 0.001,
-            // Perspective projections use field of view, expressed in radians. We would
-            // normally not set it to more than π, which represents a 180° FOV.
-            perspective_zoom_range: (PI / 5.)..(PI - 0.2),
-            // Changes in FOV are much more noticeable due to its limited range in radians
-            perspective_zoom_speed: 0.05,
-        })
-        .add_systems(Startup, setup)
-        .add_systems(Update, (zoom, movement_keyboard));
+        app.add_systems(Startup, setup)
+            .add_systems(Update, (zoom, movement_keyboard));
     }
 }
 
-#[derive(Debug, Resource)]
-struct CameraSettings {
-    /// The height of the viewport in world units when the orthographic camera's scale is 1
-    pub orthographic_viewport_height: f32,
-    /// Clamp the orthographic camera's scale to this range
-    pub orthographic_zoom_range: Range<f32>,
-    /// Multiply mouse wheel inputs by this factor when using the orthographic camera
-    pub orthographic_zoom_speed: f32,
-    /// Clamp perspective camera's field of view to this range
-    pub perspective_zoom_range: Range<f32>,
-    /// Multiply mouse wheel inputs by this factor when using the perspective camera
-    pub perspective_zoom_speed: f32,
-}
-
-fn setup(mut commands: Commands, camera_settings: Res<CameraSettings>) {
+fn setup(mut commands: Commands, camera_settings: Res<CameraConfig>) {
     commands.spawn((
         Camera3d::default(),
         Projection::from(OrthographicProjection {
@@ -58,11 +31,12 @@ fn setup(mut commands: Commands, camera_settings: Res<CameraSettings>) {
 }
 
 fn movement_keyboard(
-    mut camera_query: Query<&mut Transform, With<Camera3d>>,
+    camera_query: Single<(&mut Transform, &mut Projection), With<Camera3d>>,
+    camera_config: Res<CameraConfig>,
     key: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) -> Result {
-    let mut camera = camera_query.single_mut()?;
+    let (mut camera, mut projection) = camera_query.into_inner();
 
     let forward = camera.forward();
     let forward_unit = Dir3::from_xyz(forward.x, 0.0, forward.z).unwrap();
@@ -70,7 +44,15 @@ fn movement_keyboard(
     let left = camera.left();
     let left_unit = Dir3::from_xyz(left.x, 0.0, left.z).unwrap();
 
-    let speed = 30.0;
+    let mut speed = camera_config.movement_speed;
+
+    // If we are zoomed-in, the camera speed movement should be adjusted accordingly
+    match projection.as_mut() {
+        Projection::Orthographic(orthographic) => {
+            speed = speed * orthographic.scale;
+        }
+        _ => {}
+    }
 
     if key.pressed(KeyCode::ArrowDown) {
         camera.translation -= forward_unit * time.delta_secs() * speed;
@@ -89,8 +71,8 @@ fn movement_keyboard(
 }
 
 fn zoom(
-    camera: Single<&mut Projection, With<Camera>>,
-    camera_settings: Res<CameraSettings>,
+    camera: Single<&mut Projection, With<Camera3d>>,
+    camera_settings: Res<CameraConfig>,
     mouse_wheel_input: Res<AccumulatedMouseScroll>,
 ) {
     // Usually, you won't need to handle both types of projection,
