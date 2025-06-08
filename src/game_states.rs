@@ -9,7 +9,7 @@ impl Plugin for GameStatePlugin {
     }
 }
 
-#[derive(States, Default, Debug, Hash, Eq, PartialEq, Clone)]
+#[derive(States, Default, Debug, Hash, Eq, PartialEq, Clone, Copy)]
 pub enum GameState {
     #[default]
     Loading,
@@ -21,6 +21,7 @@ pub enum GameState {
     HeroEditor,
     Options,
     Credits,
+    ExitingGame,
 }
 
 fn exit_game(key: Res<ButtonInput<KeyCode>>, mut app_exit_event: EventWriter<AppExit>) {
