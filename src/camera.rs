@@ -49,9 +49,10 @@ fn movement_keyboard(
     // If we are zoomed-in, the camera speed movement should be adjusted accordingly
     match projection.as_mut() {
         Projection::Orthographic(orthographic) => {
-            speed = speed * orthographic.scale;
+            speed *= orthographic.scale;
         }
-        _ => {}
+        Projection::Perspective(_) => (),
+        Projection::Custom(_) => (),
     }
 
     if key.pressed(KeyCode::ArrowDown) {

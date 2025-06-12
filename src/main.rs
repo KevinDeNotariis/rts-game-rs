@@ -14,6 +14,7 @@ use rts_game_rs::{
     light::LightPlugin,
     menus::MenusPlugin,
     terrain::TerrainPlugin,
+    units::UnitsPlugin,
 };
 
 fn main() -> Result<(), Error> {
@@ -50,6 +51,7 @@ fn main() -> Result<(), Error> {
             CameraPlugin,
             TerrainPlugin,
             LightPlugin,
+            UnitsPlugin,
         ))
         .run();
 

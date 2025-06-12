@@ -4,3 +4,4 @@ pub mod game_states;
 pub mod light;
 pub mod menus;
 pub mod terrain;
+pub mod units;
