@@ -1,7 +1,4 @@
-use bevy::{
-    ecs::{component::HookContext, world::DeferredWorld},
-    prelude::*,
-};
+use bevy::prelude::*;
 use bevy_rapier3d::prelude::{Collider, RapierPickable};
 
 use crate::game_states::GameState;
@@ -21,7 +18,6 @@ pub struct UnitSelector;
 
 #[derive(Component, Reflect, Debug)]
 #[reflect(Component)]
-#[component(on_add = selected_added)]
 pub struct Selected;
 
 #[derive(Component, Reflect, Debug)]
@@ -58,39 +54,73 @@ fn setup(
             MeshMaterial3d(materials.add(Color::srgb_u8(50, 50, 200))),
             Collider::capsule_y(half_length / 2., radius),
             RapierPickable,
+            children![(
+                Name::new("Selector"),
+                UnitSelector,
+                Mesh3d(meshes.add(Torus::new(0.15, 0.17))),
+                MeshMaterial3d(materials.add(Color::srgb_u8(0, 200, 0))),
+                Transform::from_xyz(0., -0.3, 0.),
+                Visibility::Hidden,
+            )],
+            Movement { speed: 1.0 },
+        ))
+        .observe(on_click);
+
+    commands
+        .spawn((
+            Name::new("unit"),
+            Unit,
+            Mesh3d(meshes.add(Capsule3d::new(radius, half_length))),
+            Transform::from_translation(Vec3::new(2., half_length, 2.)),
+            MeshMaterial3d(materials.add(Color::srgb_u8(50, 50, 200))),
+            Collider::capsule_y(half_length / 2., radius),
+            RapierPickable,
+            children![(
+                Name::new("Selector"),
+                UnitSelector,
+                Mesh3d(meshes.add(Torus::new(0.15, 0.17))),
+                MeshMaterial3d(materials.add(Color::srgb_u8(0, 200, 0))),
+                Transform::from_xyz(0., -0.3, 0.),
+                Visibility::Hidden,
+            )],
             Movement { speed: 1.0 },
         ))
         .observe(on_click);
 }
 
-fn on_click(click: Trigger<Pointer<Click>>, mut commands: Commands) {
+fn on_click(
+    click: Trigger<Pointer<Click>>,
+    world: &World,
+    mut commands: Commands,
+    selected_units: Query<Entity, (With<Selected>, Without<UnitSelector>)>,
+    unit_selectors_selected: Query<Entity, (With<UnitSelector>, With<Selected>)>,
+) {
     match click.button {
-        PointerButton::Primary => commands.entity(click.target).insert(Selected),
+        PointerButton::Primary => {
+            // Remove for previously selected
+            for entity in selected_units.iter() {
+                commands.entity(entity).remove::<Selected>();
+            }
+            for entity in unit_selectors_selected.iter() {
+                commands.entity(entity).remove::<Selected>();
+                commands.entity(entity).insert(Visibility::Hidden);
+            }
+
+            // Add for just selected
+            commands.entity(click.target).insert(Selected);
+            if let Some(children) = world.get::<Children>(click.target) {
+                for child in children {
+                    if let Some(_) = world.get::<UnitSelector>(*child) {
+                        commands
+                            .entity(*child)
+                            .insert((Visibility::Inherited, Selected));
+                    }
+                }
+            }
+        }
         PointerButton::Secondary => todo!(),
         PointerButton::Middle => todo!(),
     };
-}
-
-fn selected_added(mut world: DeferredWorld, context: HookContext) {
-    let mesh_handle = {
-        let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        meshes.add(Torus::new(0.15, 0.17))
-    };
-
-    let material_handle = {
-        let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
-        materials.add(Color::srgb_u8(0, 200, 0))
-    };
-
-    let mut commands = world.commands();
-
-    commands.entity(context.entity).insert(children![(
-        Name::new("Selector"),
-        UnitSelector,
-        Mesh3d(mesh_handle),
-        MeshMaterial3d(material_handle),
-        Transform::from_xyz(0., -0.3, 0.),
-    )]);
 }
 
 fn close_enough(v1: Vec2, v2: Vec2) -> bool {

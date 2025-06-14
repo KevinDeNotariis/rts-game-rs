@@ -47,22 +47,23 @@ fn setup(
 fn on_click(
     click: Trigger<Pointer<Click>>,
     mut commands: Commands,
-    selected_units_query: Query<Entity, With<Selected>>,
-    units_selector_query: Query<Entity, With<UnitSelector>>,
+    selected_units: Query<Entity, (With<Selected>, Without<UnitSelector>)>,
+    unit_selectors_selected: Query<Entity, (With<UnitSelector>, With<Selected>)>,
 ) {
     let hit = click.hit.position.unwrap();
 
     match click.button {
         PointerButton::Primary => {
-            for entity in units_selector_query.iter() {
-                commands.entity(entity).despawn();
-            }
-            for entity in selected_units_query.iter() {
+            for entity in selected_units.iter() {
                 commands.entity(entity).remove::<Selected>();
+            }
+            for entity in unit_selectors_selected.iter() {
+                commands.entity(entity).remove::<Selected>();
+                commands.entity(entity).insert(Visibility::Hidden);
             }
         }
         PointerButton::Secondary => {
-            if let Ok(unit) = selected_units_query.single() {
+            for unit in selected_units.iter() {
                 commands.entity(unit).insert(MoveTo { target: hit.xz() });
             }
         }
