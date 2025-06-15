@@ -1,13 +1,20 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{Collider, RapierPickable};
 
-use crate::game_states::GameState;
+use crate::{
+    game_states::GameState,
+    units::{selection::SelectionPlugin, utils::remove_selection},
+};
+
+pub mod selection;
+pub mod utils;
 
 pub struct UnitsPlugin;
 
 impl Plugin for UnitsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Playing), setup)
+        app.add_plugins(SelectionPlugin)
+            .add_systems(OnEnter(GameState::Playing), setup)
             .add_systems(Update, movement.run_if(in_state(GameState::Playing)));
     }
 }
@@ -98,13 +105,7 @@ fn on_click(
     match click.button {
         PointerButton::Primary => {
             // Remove for previously selected
-            for entity in selected_units.iter() {
-                commands.entity(entity).remove::<Selected>();
-            }
-            for entity in unit_selectors_selected.iter() {
-                commands.entity(entity).remove::<Selected>();
-                commands.entity(entity).insert(Visibility::Hidden);
-            }
+            remove_selection(&mut commands, selected_units, unit_selectors_selected);
 
             // Add for just selected
             commands.entity(click.target).insert(Selected);

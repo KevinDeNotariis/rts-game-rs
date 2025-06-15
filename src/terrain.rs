@@ -4,7 +4,7 @@ use bevy_rapier3d::prelude::{Collider, RapierPickable};
 use crate::{
     config::terrain::TerrainConfig,
     game_states::GameState,
-    units::{MoveTo, Selected, UnitSelector},
+    units::{MoveTo, Selected, UnitSelector, utils::remove_selection},
 };
 
 pub struct TerrainPlugin;
@@ -54,16 +54,10 @@ fn on_click(
 
     match click.button {
         PointerButton::Primary => {
-            for entity in selected_units.iter() {
-                commands.entity(entity).remove::<Selected>();
-            }
-            for entity in unit_selectors_selected.iter() {
-                commands.entity(entity).remove::<Selected>();
-                commands.entity(entity).insert(Visibility::Hidden);
-            }
+            remove_selection(&mut commands, selected_units, unit_selectors_selected);
         }
         PointerButton::Secondary => {
-            for unit in selected_units.iter() {
+            for unit in selected_units {
                 commands.entity(unit).insert(MoveTo { target: hit.xz() });
             }
         }
